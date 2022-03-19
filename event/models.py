@@ -4,7 +4,7 @@ from db import Base
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 
 
-class Topics(Base):
+class Topic(Base):
     __tablename__ = 'topics'
     id = Column(Integer, primary_key=True, autoincrement=True, index=1)
     topicName = Column(String(255), nullable=False)
@@ -63,7 +63,7 @@ class MyAdmins(Base):
 
 
 class Volunteers(Base):
-    __tablename__ = 'volunteers.py'
+    __tablename__ = 'volunteers'
     id = Column(Integer, primary_key=True, autoincrement=True, index=1)
     username = Column(String(255), nullable=False, unique=True)
     password = Column(String(255), nullable=False)
@@ -87,6 +87,7 @@ class ParticipantsLogs(Base):
     id = Column(Integer, primary_key=True, autoincrement=True, index=1)
     participantId = Column(Integer, ForeignKey("participants.id"), nullable=False)
     checkInStatus = Column(String(120), nullable=False)
+    checkInBy = Column(Integer, ForeignKey("volunteers.id"), nullable=False)
     createdON = Column(DateTime, nullable=False, default=current_timestamp())
     updatedON = Column(DateTime, nullable=False, default=current_timestamp(), onupdate=current_timestamp())
 
@@ -96,6 +97,7 @@ class AdminLogs(Base):
     id = Column(Integer, primary_key=True, autoincrement=True, index=1)
     adminId = Column(Integer, ForeignKey("admin.id"), nullable=False)
     checkInStatus = Column(String(120), nullable=False)
+    checkInBy = Column(Integer, ForeignKey("volunteers.id"), nullable=False)
     createdON = Column(DateTime, nullable=False, default=current_timestamp())
     updatedON = Column(DateTime, nullable=False, default=current_timestamp(), onupdate=current_timestamp())
 
@@ -103,7 +105,8 @@ class AdminLogs(Base):
 class VolunteersLogs(Base):
     __tablename__ = 'volunteersLogs'
     id = Column(Integer, primary_key=True, autoincrement=True, index=1)
-    volunteerId = Column(Integer, ForeignKey("volunteers.py.id"), nullable=False)
+    volunteerId = Column(Integer, ForeignKey("volunteers.id"), nullable=False)
     checkInStatus = Column(String(120), nullable=False)
+    checkInBy = Column(Integer, ForeignKey("volunteers.id"), nullable=False)
     createdON = Column(DateTime, nullable=False, default=current_timestamp())
     updatedON = Column(DateTime, nullable=False, default=current_timestamp(), onupdate=current_timestamp())

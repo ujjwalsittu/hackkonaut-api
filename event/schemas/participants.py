@@ -18,12 +18,9 @@ class Participants(BaseModel):
 
 
 class ParticipantsLogs(BaseModel):
-        participantId = int
-        checkInStatus = str
+        participantId: int
+        checkInStatus: str
+        checkInBy: int
 
 
-class College(BaseModel):
-    collegeName = str
-    collegeCode = str
-    collegeAddress = str
 
