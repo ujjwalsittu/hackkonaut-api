@@ -1,6 +1,6 @@
 from sqlalchemy.sql.functions import current_timestamp
 
-from db import Base
+from event.db import Base
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Boolean
 
 

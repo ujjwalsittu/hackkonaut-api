@@ -3,7 +3,7 @@ from fastapi import FastAPI, Depends, status, HTTPException
 from event.schemas import participants, volunteer, misc
 from event.schemas import admin as admins
 from event import models
-from db import engine, SessionDb
+from event.db import engine, SessionDb
 from sqlalchemy.orm import Session
 
 models.Base.metadata.create_all(bind=engine)
@@ -22,7 +22,7 @@ app = FastAPI()
 
 
 # Main Routes Starts Here
-@app.get("/", tags=["admin"],include_in_schema=False)
+@app.get("/", tags=["admin"], include_in_schema=False)
 async def index():
     return {"message": "Server Is Working"}
 
@@ -86,7 +86,8 @@ async def get_participants(db: Session = Depends(get_db)):
     return {"data": db.query(models.Participants).all()}
 
 
-@app.post('/add/participants', status_code=status.HTTP_201_CREATED, tags=["participants"], description="Add participants")
+@app.post('/add/participants', status_code=status.HTTP_201_CREATED, tags=["participants"],
+          description="Add participants")
 async def add_participants(data: participants.Participants, db: Session = Depends(get_db)):
     check = db.query(models.Participants).filter(
         models.Participants.email == data.email or models.Participants.phoneNumber)
@@ -102,13 +103,15 @@ async def add_participants(data: participants.Participants, db: Session = Depend
         return new_participants
 
 
-@app.get('/participants/{pid}', tags=["participants"], status_code=status.HTTP_200_OK, description="Get participant by id")
+@app.get('/participants/{pid}', tags=["participants"], status_code=status.HTTP_200_OK,
+         description="Get participant by id")
 async def get_participants_by_id(pid: int, db: Session = Depends(get_db)):
     participant = db.query(models.Participants).filter(models.Participants.id == pid).first()
     return {"data": participant}
 
 
-@app.put('/update/participants/{pid}', tags=["participants"], status_code=status.HTTP_200_OK, description="Update participant")
+@app.put('/update/participants/{pid}', tags=["participants"], status_code=status.HTTP_200_OK,
+         description="Update participant")
 async def update_participants(pid: int, data: participants.Participants, db: Session = Depends(get_db)):
     participant = db.query(models.Participants).filter(models.Participants.id == pid).first()
     if not participant:
@@ -122,7 +125,8 @@ async def update_participants(pid: int, data: participants.Participants, db: Ses
         return {"message": "Participants Updated", "data": participant}
 
 
-@app.delete('/delete/participants/{pid}', tags=["participants"], status_code=status.HTTP_200_OK, description="Delete participant")
+@app.delete('/delete/participants/{pid}', tags=["participants"], status_code=status.HTTP_200_OK,
+            description="Delete participant")
 async def delete_participants(pid: int, db: Session = Depends(get_db)):
     participant = db.query(models.Participants).filter(models.Participants.id == pid).first()
     if not participant:
@@ -164,27 +168,29 @@ async def add_volunteers(data: volunteer.Volunteers, db: Session = Depends(get_d
             return new_volunteers
 
 
-@app.put('/update/volunteers/{vid}', tags=["volunteers"], status_code=status.HTTP_200_OK, description="Update volunteer")
+@app.put('/update/volunteers/{vid}', tags=["volunteers"], status_code=status.HTTP_200_OK,
+         description="Update volunteer")
 async def update_volunteers(vid: int, data: volunteer.Volunteers, db: Session = Depends(get_db)):
-    volunteer = db.query(models.Volunteers).filter(models.Volunteers.id == vid).first()
-    if not volunteer:
+    volunteeru = db.query(models.Volunteers).filter(models.Volunteers.id == vid).first()
+    if not volunteeru:
         raise HTTPException(status_code=404, detail="Volunteer not found")
-    elif volunteer.email == data.email or volunteer.phoneNumber == data.phoneNumber:
+    elif volunteeru.email == data.email or volunteeru.phoneNumber == data.phoneNumber:
         raise HTTPException(status_code=400, detail="Duplicate Data Entry, check email or phone number")
     else:
-        volunteer.update(**data.dict())
+        volunteeru.update(**data.dict())
         db.commit()
-        db.refresh(volunteer)
-        return {"message": "Volunteer Updated", "data": volunteer}
+        db.refresh(volunteeru)
+        return {"message": "Volunteer Updated", "data": volunteeru}
 
 
-@app.delete('/delete/volunteers/{vid}', tags=["volunteers"], status_code=status.HTTP_200_OK, description="Delete volunteer")
+@app.delete('/delete/volunteers/{vid}', tags=["volunteers"], status_code=status.HTTP_200_OK,
+            description="Delete volunteer")
 async def delete_volunteers(vid: int, db: Session = Depends(get_db)):
-    volunteer = db.query(models.Volunteers).filter(models.Volunteers.id == vid).first()
-    if not volunteer:
+    volunteerw = db.query(models.Volunteers).filter(models.Volunteers.id == vid).first()
+    if not volunteerw:
         raise HTTPException(status_code=404, detail="Volunteer not found")
     else:
-        volunteer.delete()
+        volunteerw.delete()
         db.commit()
         return {"status": "success", "data": "Volunteer deleted"}
 
@@ -289,26 +295,30 @@ async def delete_college(cid: int, db: Session = Depends(get_db)):
         return {"status": "success", "data": "College deleted"}
 
 
-@app.get('participantsLogs', tags=["Checkin"], status_code=status.HTTP_200_OK, description="Get all Checkin participantsLogs")
-async def get_participantsLogs(db: Session = Depends(get_db)):
+@app.get('participantsLogs', tags=["Checkin"], status_code=status.HTTP_200_OK,
+         description="Get all Checkin participantsLogs")
+async def getparticipantslogs(db: Session = Depends(get_db)):
     return {"data": db.query(models.ParticipantsLogs).all()}
 
 
-@app.put('/update/participantsLogs/{pid}', tags=["Checkin"], status_code=status.HTTP_200_OK, description="Do Particpant Checkin/Out")
+@app.put('/update/participantsLogs/{pid}', tags=["Checkin"], status_code=status.HTTP_200_OK,
+         description="Do Particpant Checkin/Out")
 async def update_participantsLogs(pid: int, data: participants.ParticipantsLogs, db: Session = Depends(get_db)):
     partipantCurrentStatus = db.query(models.Participants).filter(models.Participants.id == pid).first()
     partcheckin = models.ParticipantsLogs(**data.dict())
-    if partipantCurrentStatus.checkIn == "OUT" or  "out" or "Out":
-       partipantCurrentStatus.update({'checkIn': "IN"})
-       db.add(partcheckin)
-       db.commit()
-       db.refresh(partipantCurrentStatus)
-       db.refresh(partcheckin)
-       return {"message": "Participant Checked In", "currentStatus": partipantCurrentStatus.checkIn, "data": partcheckin}
+    if partipantCurrentStatus.checkIn == "OUT" or "out" or "Out":
+        partipantCurrentStatus.update({'checkIn': "IN"})
+        db.add(partcheckin)
+        db.commit()
+        db.refresh(partipantCurrentStatus)
+        db.refresh(partcheckin)
+        return {"message": "Participant Checked In", "currentStatus": partipantCurrentStatus.checkIn,
+                "data": partcheckin}
     else:
         partipantCurrentStatus.update({'checkIn': "OUT"})
         db.add(partcheckin)
         db.commit()
         db.refresh(partipantCurrentStatus)
         db.refresh(partcheckin)
-        return {"message": "Participant Checked Out", "currentStatus": partipantCurrentStatus.checkIn, "data": partcheckin}
+        return {"message": "Participant Checked Out", "currentStatus": partipantCurrentStatus.checkIn,
+                "data": partcheckin}

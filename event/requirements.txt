@@ -1,0 +1,9 @@
+fastapi~=0.75.0
+pydantic~=1.9.0
+# uvicorn
+gunicorn~=20.0.4
+python-multipart
+SQLAlchemy~=1.4.32
+pymysql==1.0.2
+pyjwt
+python-decouple
